@@ -10,6 +10,8 @@ int main() {
 	vector<double> freeMemb{ -6.49 , 19.20, -5.09 };
  	cout << matrix.size();
 PrintMatrix(matrix);
-StraightMove(matrix, freeMemb);
+vector<double> x = StraightMove(matrix, freeMemb);
+
+FindAccuracy(matrix, x);
 	return 0;
 }
