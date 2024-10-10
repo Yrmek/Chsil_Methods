@@ -22,7 +22,7 @@ vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>&
  
 
     for (int k = 0; k < n; k++) {
-        // Поиск максимального элемента для выбора ведущего
+        // finding max elem
         double maxEl = abs(matrix[k][k]);
         int maxRow = k;
 
@@ -33,11 +33,11 @@ vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>&
             }
         }
 
-        // Меняем местами текущую строку и строку с максимальным элементом
+        // swap current and max row
         swap(matrix[maxRow], matrix[k]);
         swap(freeMemb[maxRow], freeMemb[k]);
 
-        // Нормализация текущей строки
+        // Normalization
         double leadingElement = matrix[k][k];
         assert(leadingElement != 0 && "Matrix is singular!");
 
@@ -46,7 +46,7 @@ vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>&
         }
         freeMemb[k] /= leadingElement;
 
-        // Обнуление элементов под ведущим
+        // zeroing the elements under the leading element
         for (int i = k + 1; i < n; i++) {
             double factor = matrix[i][k];
             for (int j = 0; j < n; j++) {
@@ -56,7 +56,7 @@ vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>&
         }
     }
 
-    // Обратная подстановка для нахождения x
+    // reverse for finding x
     for (int k = n - 1; k >= 0; k--) {
         double sum = 0;
         for (int j = k + 1; j < n; j++) {
@@ -79,14 +79,14 @@ double FindAccuracy(const vector<vector<double>>& originalMatrix, const vector<d
     vector<double> x_second(n);
     vector<double> freeMemb(n, 0.0);
 
-    // Вычисление нового свободного члена
+    // calc of new free member
     for (int j = 0; j < n; j++) {
         for (int i = 0; i < n; i++) {
             freeMemb[j] += originalMatrix[j][i] * x_first[i];
         }
     }
 
-    // Создание копии оригинальной матрицы для решения
+    // copy of original matrix
     auto modifiedMatrix = originalMatrix;
 
     x_second = StraightMove(modifiedMatrix, freeMemb);
