@@ -6,126 +6,102 @@
 
 using namespace std;
 
-void PrintMatrix(vector<vector<double>> matrix)
-{
-	for (int i = 0; i < matrix.size(); i++)
-	{
-		for (int j = 0; j < matrix.size(); j++)
-		{
-			cout << "|" << setw(3) << matrix[i][j] << "|";
-		}
-		cout << endl;
-	}
+void PrintMatrix(const vector<vector<double>>& matrix) {
+    for (const auto& row : matrix) {
+        for (const auto& value : row) {
+            cout << "|" << setw(8) << value << "|";
+        }
+        cout << endl;
+    }
 }
 
-vector<double> StraightMove(vector<vector<double>> matrix, vector<double> freeMemb) {
-	vector<double> x(matrix.size());
-	vector<double> IOR(matrix.size());
-	for (int k = 0; k < matrix.size(); k++) {
-		IOR[k] = k;
-	}
-	int k = 0;
-	int p = 0;
-	int M = 0;
-	while (true) {
+vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>& freeMemb1) {
+    int n = matrix.size();
+    vector<double> freeMemb(freeMemb1);
+    vector<double> x(n);
+ 
 
-		double AKK = 0;
-		int l = 0;
+    for (int k = 0; k < n; k++) {
+        // Поиск максимального элемента для выбора ведущего
+        double maxEl = abs(matrix[k][k]);
+        int maxRow = k;
 
-		for (int i = k; i < matrix.size(); i++) {
-			l = IOR[i];
-			if (matrix[l][k] < AKK) {
-				continue;
-			}
-			else {
-				M = l;
-				p = i;
-				AKK = abs(matrix[l][k]);
-				break;
-			}
-		}
+        for (int i = k + 1; i < n; i++) {
+            if (abs(matrix[i][k]) > maxEl) {
+                maxEl = abs(matrix[i][k]);
+                maxRow = i;
+            }
+        }
 
-		if (p != k) {
-			IOR[p] = IOR[k];
-			IOR[k] = M;
-		}
+        // Меняем местами текущую строку и строку с максимальным элементом
+        swap(matrix[maxRow], matrix[k]);
+        swap(freeMemb[maxRow], freeMemb[k]);
 
-		double AMAIN = matrix[M][k];
-		assert(AMAIN && "IER = 1");
+        // Нормализация текущей строки
+        double leadingElement = matrix[k][k];
+        assert(leadingElement != 0 && "Matrix is singular!");
 
-		for (int j = 0; j < matrix.size(); j++) {
-			matrix[M][j] = matrix[M][j] / AMAIN;
-		}
+        for (int j = 0; j < n; j++) {
+            matrix[k][j] /= leadingElement;
+        }
+        freeMemb[k] /= leadingElement;
 
-		freeMemb[M] = freeMemb[M] / AMAIN;
+        // Обнуление элементов под ведущим
+        for (int i = k + 1; i < n; i++) {
+            double factor = matrix[i][k];
+            for (int j = 0; j < n; j++) {
+                matrix[i][j] -= factor * matrix[k][j];
+            }
+            freeMemb[i] -= factor * freeMemb[k];
+        }
+    }
 
-		for (int i = k + 1; i < matrix.size(); i++) {
-			l = IOR[i];
-			for (int j = k ; j < matrix.size(); j++) {
-				matrix[l][j] = matrix[l][j] - matrix[l][k] * matrix[M][j];
-			}
-			freeMemb[l] = freeMemb[l] - matrix[l][k] * freeMemb[M];
-		}
-		k++;
-		
-		if (k < matrix.size()) {
-			continue;
-		}
-		else {
-			assert(matrix[l][matrix.size() - 1] && "IER = 1");
-			l = IOR[matrix.size() - 1];
-			freeMemb[l] = freeMemb[l] / matrix[l][matrix.size() - 1];
-			x[matrix.size() - 1] = freeMemb[l];
-			break;
-		}
-	}
-	PrintMatrix(matrix);
-	for (auto i : freeMemb) {
-		cout << i <<" ";
-	}
-	cout << endl;
+    // Обратная подстановка для нахождения x
+    for (int k = n - 1; k >= 0; k--) {
+        double sum = 0;
+        for (int j = k + 1; j < n; j++) {
+            sum += matrix[k][j] * x[j];
+        }
+        x[k] = freeMemb[k] - sum;
+    }
+    PrintMatrix(matrix);
+    cout << "X:" << endl;
+    for (const auto i : x) {
+        cout << i << "   " ;
+    }
+    cout << endl;
 
-	for ( k = matrix.size() - 1; k >= 0; k--) {
-		int l = IOR[k];
-		double sum = 0;
-		for (int j = k + 1; j < matrix.size(); j++) {
-			sum += matrix[l][j] * x[j];
-		}
-		x[k] = freeMemb[l] - sum;
-	}
-
-	for (auto i : x) {
-		cout << i << " ";
-	}
-
-	return x;
+    return x;
 }
 
-double FindAccuracy(vector<vector<double>> matrix, vector<double> x_first)
-{
-	vector<double> x_second(x_first.size());
-	vector<double> freeMemb(x_first.size());
-	for (int j = 0; j < matrix.size() ; j++) {
-		for (int i = 0; i < matrix.size(); i++) {
-			freeMemb[j] += matrix[j][i] * x_first[i];
-		}
-	}
-	x_second = StraightMove(matrix, freeMemb);
-	double acc = 0;
-	double dif = abs(x_second[0] - x_first[0]);
-	double x_abs = abs(x_first[0]);
-	for (int i = 1; i < x_first.size(); i++) {
-		if (dif < abs(x_second[i] - x_first[i])) {
-			dif = abs(x_second[i] - x_first[i]);
-		}
-		if (x_abs < abs(x_first[i])) {
-			x_abs = abs(x_first[i]);
-		}
-	}
+double FindAccuracy(const vector<vector<double>>& originalMatrix, const vector<double>& x_first) {
+    int n = originalMatrix.size();
+    vector<double> x_second(n);
+    vector<double> freeMemb(n, 0.0);
 
-	acc = dif / x_abs;
-	cout << "Accuracy: " << acc;
-	return acc;
+    // Вычисление нового свободного члена
+    for (int j = 0; j < n; j++) {
+        for (int i = 0; i < n; i++) {
+            freeMemb[j] += originalMatrix[j][i] * x_first[i];
+        }
+    }
+
+    // Создание копии оригинальной матрицы для решения
+    auto modifiedMatrix = originalMatrix;
+
+    x_second = StraightMove(modifiedMatrix, freeMemb);
+
+    double acc = 0;
+    double dif = abs(x_second[0] - x_first[0]);
+    double x_abs = abs(x_first[0]);
+
+    for (int i = 1; i < n; i++) {
+        dif = max(dif, abs(x_second[i] - x_first[i]));
+        x_abs = max(x_abs, abs(x_first[i]));
+    }
+
+    acc = dif / x_abs;
+    cout << "Accuracy: " << acc << endl;
+
+    return acc;
 }
-
-
