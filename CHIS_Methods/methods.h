@@ -15,7 +15,7 @@ void PrintMatrix(const vector<vector<double>>& matrix) {
     }
 }
 
-vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>& freeMemb1) {
+vector<double> DoGaussMethod(vector<vector<double>> matrix, const vector<double>& freeMemb1) {
     int n = matrix.size();
     vector<double> freeMemb(freeMemb1);
     vector<double> x(n);
@@ -39,7 +39,7 @@ vector<double> StraightMove(vector<vector<double>> matrix, const vector<double>&
 
         // Normalization
         double leadingElement = matrix[k][k];
-        assert(leadingElement != 0 && "Matrix is singular!");
+        assert(leadingElement != 0 && "IER = 1");
 
         for (int j = 0; j < n; j++) {
             matrix[k][j] /= leadingElement;
@@ -86,21 +86,25 @@ double FindAccuracy(const vector<vector<double>>& originalMatrix, const vector<d
         }
     }
 
-    // copy of original matrix
     auto modifiedMatrix = originalMatrix;
 
-    x_second = StraightMove(modifiedMatrix, freeMemb);
+    x_second = DoGaussMethod(modifiedMatrix, freeMemb);
 
     double acc = 0;
     double dif = abs(x_second[0] - x_first[0]);
     double x_abs = abs(x_first[0]);
+    acc = dif / x_abs;
 
     for (int i = 1; i < n; i++) {
-        dif = max(dif, abs(x_second[i] - x_first[i]));
-        x_abs = max(x_abs, abs(x_first[i]));
+        double curr_dif = abs(x_second[i] - x_first[i]);
+        double curr_x_abs = abs(x_first[i]);
+        double curr_acc = curr_dif / curr_x_abs;
+        if (curr_acc > acc)
+        {
+            acc = curr_acc;
+        }
     }
 
-    acc = dif / x_abs;
     cout << "Accuracy: " << acc << endl;
 
     return acc;
